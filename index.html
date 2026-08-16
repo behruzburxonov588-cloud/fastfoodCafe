@@ -1,0 +1,748 @@
+
+
+Admin · HTML
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fast Food Cafe — Boshqaruv paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ============================================
+  // BU YERGA o'zingizning Supabase loyihangiz
+  // ma'lumotlarini kiriting (Settings → API):
+  // ============================================
+  const SUPABASE_URL = "https://vhhpcshfqomouppczrra.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_n6CzcTRSgEwwPrzrKYrfyQ_3F4LyDUh";
+</script>
+<style>
+  :root{
+    --bg:#050507; --bg-2:#0B0A12;
+    --glass:rgba(255,255,255,0.045); --glass-2:rgba(255,255,255,0.08);
+    --border:rgba(255,255,255,0.14); --border-soft:rgba(255,255,255,0.08);
+    --text:#F5F4FF; --muted:#8B87A8;
+    --grad-a:#FF2E9A; --grad-b:#00E5FF; --neon-c:#9D4EFF;
+    --glow-a:rgba(255,46,154,.55); --glow-b:rgba(0,229,255,.5); --glow-c:rgba(157,78,255,.5);
+    --ok:#39FF88; --danger:#FF3366; --warn:#FFD23F; --info:#5CC8FF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;
+    -webkit-font-smoothing:antialiased;padding-bottom:60px;min-height:100vh;
+    position:relative;overflow-x:hidden;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input,textarea{font-family:inherit;}
+ 
+  .grad-text{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 8px rgba(255,46,154,.3));}
+  .grad-bg{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));}
+ 
+  @keyframes blobMove{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-30px) scale(1.08);}66%{transform:translate(-24px,18px) scale(.95);}}
+  @keyframes popIn{0%{opacity:0;transform:scale(.88) translateY(12px);}100%{opacity:1;transform:scale(1) translateY(0);}}
+  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes copyPop{0%{transform:scale(1);}40%{transform:scale(1.15);}100%{transform:scale(1);}}
+  @keyframes ringFlash{0%{box-shadow:0 0 0 0 var(--glow-a);}100%{box-shadow:0 0 0 14px rgba(255,46,154,0);}}
+  @keyframes barGrow{from{height:0;}}
+ 
+  .bg-blob{position:fixed;border-radius:50%;filter:blur(80px);opacity:.4;pointer-events:none;z-index:0;animation:blobMove 14s ease-in-out infinite;}
+  .bg-blob.b1{width:380px;height:380px;background:var(--grad-a);top:-120px;left:-100px;}
+  .bg-blob.b2{width:340px;height:340px;background:var(--grad-b);bottom:-140px;right:-110px;animation-delay:-6s;}
+  .bg-blob.b3{width:300px;height:300px;background:var(--neon-c);top:40%;left:40%;animation-delay:-10s;opacity:.28;}
+ 
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1;}
+  .login-card{width:100%;max-width:380px;background:var(--glass);backdrop-filter:blur(18px);border:1.5px solid var(--border);border-radius:24px;padding:34px 28px;text-align:center;animation:popIn .5s cubic-bezier(.26,1.4,.4,1);}
+  .login-card.shake{animation:shake .4s;}
+  .login-mark{width:54px;height:54px;border-radius:16px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 22px 2px var(--glow-a), 0 0 36px 6px var(--glow-b);}
+  .login-brand{font-size:22px;font-weight:700;}
+  .login-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:5px 0 24px;}
+  .tabs2{display:flex;background:var(--glass-2);border-radius:100px;padding:4px;margin-bottom:22px;}
+  .tabs2 button{flex:1;padding:9px;border-radius:100px;font-size:13px;font-weight:700;color:var(--muted);transition:all .2s;}
+  .tabs2 button.active{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;box-shadow:0 0 12px -2px var(--glow-a);}
+  .form-group{text-align:left;margin-bottom:14px;}
+  .form-group label{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;letter-spacing:.03em;}
+  .form-group input,.form-group textarea{width:100%;background:var(--glass-2);border:1.5px solid var(--border);color:var(--text);padding:12px 14px;border-radius:12px;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;}
+  .form-group input:focus,.form-group textarea:focus{border-color:var(--grad-b);}
+  .form-group input::placeholder{color:#4c4864;}
+  .form-group input[type=file]{padding:9px 10px;font-size:12.5px;color:var(--muted);}
+  .primary-btn{width:100%;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));color:#fff;padding:14px;border-radius:14px;font-weight:700;font-size:14px;box-shadow:0 0 20px -4px var(--glow-a), 0 0 32px -6px var(--glow-b);transition:transform .15s;}
+  .primary-btn:active{transform:scale(.97);}
+  .primary-btn:disabled{opacity:.5;pointer-events:none;}
+  .login-error{color:var(--danger);font-size:12px;font-weight:600;margin-top:12px;min-height:16px;}
+  .login-hint{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.6;}
+ 
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;background:rgba(10,10,18,.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--border-soft);}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .brand .word{font-size:16px;font-weight:700;}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .bell-btn{position:relative;width:36px;height:36px;border-radius:50%;background:var(--glass-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .bell-btn.ring{animation:ringFlash .8s ease-out 2;}
+  .bell-dot{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--danger);display:none;}
+  .bell-dot.show{display:block;}
+ 
+  .order-alert-banner{position:fixed;top:-140px;left:0;right:0;z-index:100;display:flex;justify-content:center;padding:14px;transition:top .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+  .order-alert-banner.show{top:0;pointer-events:all;}
+  .oab-inner{max-width:420px;width:100%;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 34px -4px var(--glow-a), 0 0 44px -6px var(--glow-b);animation:bannerPulse 1s ease-in-out infinite;}
+  @keyframes bannerPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.015);}}
+  .oab-icon{font-size:22px;flex-shrink:0;}
+  .oab-text{flex:1;color:#fff;font-size:12.5px;line-height:1.4;}
+  .oab-text b{font-size:14px;}
+  .oab-btn{background:rgba(0,0,0,.28);color:#fff;padding:9px 16px;border-radius:10px;font-size:12px;font-weight:800;white-space:nowrap;flex-shrink:0;}
+  .ghost-btn2{width:100%;background:transparent;color:var(--muted);padding:12px;border-radius:12px;font-weight:700;font-size:12.5px;text-align:center;border:1.5px dashed var(--border);margin-top:8px;}
+  .logout-btn{font-size:11.5px;font-weight:700;color:var(--muted);border:1.5px solid var(--border);padding:8px 15px;border-radius:100px;transition:all .15s;}
+  .logout-btn:hover{color:var(--danger);border-color:var(--danger);}
+ 
+  main{max-width:760px;margin:0 auto;padding:24px 20px;position:relative;z-index:1;}
+ 
+  .link-card{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;animation:fadeUp .5s ease backwards;box-shadow:0 0 30px -14px var(--glow-a);}
+  .link-card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:10px;}
+  .link-card-body{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+  .link-qr{width:84px;height:84px;border-radius:12px;background:#fff;padding:5px;flex-shrink:0;}
+  .link-qr img{width:100%;height:100%;display:block;border-radius:7px;}
+  .link-info{flex:1;min-width:180px;}
+  .link-url{font-size:12.5px;color:var(--text);word-break:break-all;font-family:monospace;background:var(--glass-2);padding:9px 12px;border-radius:10px;border:1px solid var(--border-soft);}
+  .link-copy{margin-top:10px;background:var(--glass-2);border:1.5px solid var(--border);padding:8px 16px;border-radius:100px;font-size:11.5px;font-weight:700;}
+  .link-copy.copied{animation:copyPop .3s ease;color:var(--ok);border-color:var(--ok);}
+ 
+  .name-card{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:20px;padding:16px 20px;margin-bottom:24px;}
+  .name-card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:8px;}
+  .name-row{display:flex;gap:8px;}
+  .name-row input{flex:1;background:var(--glass-2);border:1.5px solid var(--border);color:var(--text);padding:10px 13px;border-radius:10px;font-size:13.5px;font-family:inherit;outline:none;}
+  .name-row button{background:var(--glass-2);border:1.5px solid var(--border);padding:0 16px;border-radius:10px;font-size:12px;font-weight:700;}
+ 
+  .maintabs{position:relative;display:flex;gap:4px;margin-bottom:24px;background:var(--glass);border:1.5px solid var(--border);border-radius:100px;padding:5px;}
+  .maintabs button{flex:1;padding:10px 4px;border-radius:100px;font-size:12.5px;font-weight:700;color:var(--muted);position:relative;z-index:1;transition:color .2s;}
+  .maintabs button.active{color:#fff;}
+  .maintabs .indicator{position:absolute;top:5px;bottom:5px;border-radius:100px;background:linear-gradient(135deg,var(--grad-a),var(--grad-b));transition:left .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);z-index:0;box-shadow:0 0 12px -2px var(--glow-a);}
+ 
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .stat{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:16px;padding:16px;transition:transform .15s;}
+  .stat:hover{transform:translateY(-2px);}
+  .stat .num{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;}
+  .stat .lbl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.03em;}
+ 
+  .chart-card{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:18px;padding:18px 16px 14px;margin-bottom:20px;}
+  .chart-head{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px;}
+  .chart-bars{display:flex;align-items:flex-end;justify-content:space-between;height:100px;gap:8px;}
+  .chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;height:100%;}
+  .chart-bar-wrap{flex:1;display:flex;align-items:flex-end;width:100%;justify-content:center;}
+  .chart-bar{width:60%;min-width:10px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--grad-b),var(--grad-a));animation:barGrow .6s ease backwards;position:relative;box-shadow:0 0 10px -2px var(--glow-b);}
+  .chart-bar[data-today="1"]{background:linear-gradient(180deg,var(--grad-a),var(--grad-b));box-shadow:0 0 0 1.5px var(--grad-a);}
+  .chart-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+  .chart-sum{font-size:9px;color:var(--muted);}
+ 
+  .filters{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;}
+  .filters button{flex-shrink:0;padding:8px 16px;border-radius:100px;font-size:12.5px;font-weight:600;background:var(--glass);border:1.5px solid var(--border);color:var(--muted);white-space:nowrap;transition:all .15s;}
+  .filters button.active{background:var(--glass-2);border-color:var(--grad-b);color:var(--text);}
+ 
+  .order-card{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px;transition:transform .15s, border-color .15s;animation:fadeUp .4s ease backwards;}
+  .order-card:hover{transform:translateY(-2px);border-color:var(--border-soft);}
+  .order-card.flash{animation:ringFlash 1s ease-out 2;}
+  .oc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .oc-code{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;}
+  .oc-time{font-size:11px;color:var(--muted);margin-top:2px;}
+  .badge{font-size:10px;font-weight:800;text-transform:uppercase;padding:5px 11px;border-radius:100px;letter-spacing:.02em;}
+  .badge.yangi{background:rgba(255,198,92,.15);color:var(--warn);}
+  .badge.tasdiqlangan{background:rgba(92,200,255,.15);color:var(--info);}
+  .badge.tayyor{background:rgba(53,208,127,.15);color:var(--ok);}
+  .badge.bekor{background:rgba(255,92,122,.15);color:var(--danger);}
+  .oc-meta{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);}
+  .oc-meta b{color:var(--text);}
+  .oc-items{margin-top:12px;border-top:1px solid var(--border-soft);padding-top:10px;}
+  .oc-items div{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);padding:3px 0;}
+  .oc-items div b{color:var(--text);font-weight:600;}
+  .oc-total{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft);font-size:14px;}
+  .oc-total b{font-family:'Space Grotesk',sans-serif;font-size:16px;}
+  .oc-extra{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;background:var(--glass-2);border-radius:10px;padding:10px 12px;}
+  .oc-extra b{color:var(--text);}
+  .oc-extra.cancel{border:1px solid rgba(255,92,122,.3);}
+  .oc-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .oc-actions button{flex:1;min-width:110px;padding:10px;border-radius:10px;font-size:12.5px;font-weight:700;border:1.5px solid var(--border);background:var(--glass-2);transition:all .15s;}
+  .oc-actions button.primary{background:linear-gradient(135deg,var(--grad-a),var(--grad-b));border-color:transparent;color:#fff;}
+  .oc-actions button.danger{color:var(--danger);}
+ 
+  .menu-add{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:22px;}
+  .menu-add h3{font-size:15px;margin-bottom:16px;}
+  .menu-item-row{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .menu-item-row.unavailable{opacity:.5;}
+  .mi-photo{width:42px;height:42px;border-radius:10px;flex-shrink:0;background:var(--glass-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;overflow:hidden;cursor:pointer;}
+  .mi-photo img{width:100%;height:100%;object-fit:cover;}
+  .mi-name{font-weight:700;font-size:13.5px;}
+  .mi-cat{font-size:10.5px;color:var(--grad-a);margin-top:2px;font-weight:600;}
+  .mi-price{font-size:12.5px;font-weight:700;font-family:'Space Grotesk',sans-serif;white-space:nowrap;}
+  .mi-avail{font-size:10.5px;font-weight:700;border:1.5px solid var(--border);padding:7px 10px;border-radius:8px;white-space:nowrap;}
+  .mi-avail.on{color:var(--ok);border-color:rgba(53,208,127,.35);}
+  .mi-avail.off{color:var(--danger);border-color:rgba(255,92,122,.35);}
+  .mi-del{color:var(--danger);font-size:11px;font-weight:700;border:1.5px solid var(--border);padding:7px 10px;border-radius:8px;}
+  .mi-edit{font-size:13px;border:1.5px solid var(--border);padding:7px 9px;border-radius:8px;background:var(--glass-2);}
+  .menu-item-edit{flex-direction:column;align-items:stretch;border-color:var(--grad-b);box-shadow:0 0 0 1px var(--grad-b), 0 0 16px -4px var(--glow-b);}
+  .edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+  .edit-grid .form-group{margin-bottom:0;margin-top:10px;}
+  .edit-actions{display:flex;gap:8px;margin-top:14px;}
+  .edit-actions .primary-btn{padding:11px;font-size:13px;}
+ 
+  .courier-card{background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 0 24px -14px var(--glow-b);}
+  .cc-top{display:flex;justify-content:space-between;align-items:center;}
+  .cc-code{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;}
+  .cc-dest{font-size:16px;font-weight:700;margin-top:12px;}
+  .cc-items{font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .cc-note{font-size:12.5px;color:var(--warn);margin-top:6px;}
+  .cc-phone{font-size:13px;color:var(--muted);margin-top:4px;}
+ 
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty .mk{width:56px;height:56px;margin:0 auto 16px;border-radius:16px;background:var(--glass-2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;}
+</style>
+</head>
+<body>
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+<div id="app"></div>
+ 
+<script>
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let session = null, restaurant = null;
+let currentTab = 'orders';
+let orderFilter = 'barchasi';
+let orders = [], menuItems = [];
+let authMode = 'login';
+let ordersChannel = null;
+let hasNewOrderDot = false;
+let editingItemId = null;
+ 
+const STATUS_LABELS = {yangi:'Yangi', tasdiqlangan:'Tasdiqlangan', tayyor:"Tayyor / Yo'lda", bekor:'Bekor qilindi'};
+const TYPE_LABELS = {delivery:'🛵 Yetkazib berish', dinein:'🍽️ Zalda', takeaway:'🥡 Olib ketish'};
+function fmt(n){ return Number(n).toLocaleString('ru-RU').replace(/,/g,' ') + " so'm"; }
+function timeAgo(iso){
+  const diff = Math.floor((Date.now()-new Date(iso).getTime())/60000);
+  if(diff<1) return 'hozirgina';
+  if(diff<60) return diff+' daqiqa oldin';
+  const h=Math.floor(diff/60);
+  if(h<24) return h+' soat oldin';
+  return new Date(iso).toLocaleDateString('uz-UZ');
+}
+ 
+/* ============================================================
+   LOGIN — login (foydalanuvchi nomi) + parol, email ko'rsatilmaydi.
+   MUHIM: Supabase loyihada Authentication → Settings →
+   "Confirm email" O'CHIRILGAN bo'lishi shart.
+   ============================================================ */
+function sanitizeLogin(s){ return (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,30); }
+function emailFor(login){ return login + '@tezxon.users'; }
+ 
+async function boot(){
+  const {data:{session:s}} = await supabaseClient.auth.getSession();
+  if(s){ session=s; await loadRestaurant(); }
+  render();
+}
+async function loadRestaurant(){
+  const {data} = await supabaseClient.from('restaurants').select('*').eq('id', session.user.id).single();
+  restaurant = data;
+}
+function render(){
+  if(!session){ renderLogin(); return; }
+  if(!restaurant){ renderCreateProfile(); return; }
+  renderDashboard();
+  initOrderAlerts();
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+}
+ 
+function renderLogin(){
+  document.getElementById('app').innerHTML = `
+    <div class="login-wrap"><div class="login-card">
+      <div class="login-mark grad-bg">🔥</div>
+      <div class="login-brand">Fast Food Cafe</div>
+      <div class="login-sub">Restoran egalari uchun</div>
+      <div class="tabs2">
+        <button class="${authMode==='login'?'active':''}" onclick="authMode='login';render()">Kirish</button>
+        <button class="${authMode==='signup'?'active':''}" onclick="authMode='signup';render()">Ro'yxatdan o'tish</button>
+      </div>
+      ${authMode==='signup' ? `<div class="form-group"><label>Restoran nomi</label><input id="a_name" type="text" placeholder="Masalan: Fast Food Do'koni"></div>` : ''}
+      <div class="form-group"><label>Login</label><input id="a_login" type="text" placeholder="masalan: dokon16" autocapitalize="off"></div>
+      <div class="form-group"><label>Parol</label><input id="a_pass" type="password" placeholder="Kamida 6 belgi" onkeydown="if(event.key==='Enter') submitAuth()"></div>
+      <button class="primary-btn" onclick="submitAuth()">${authMode==='login'?'Kirish':"Ro'yxatdan o'tish"}</button>
+      <div id="authError" class="login-error"></div>
+      ${authMode==='signup' ? `<div class="login-hint">Loginingiz — sizning shaxsiy havolangiz manzili bo'ladi. Uni faqat siz bilasiz va istalgan qurilmadan shu login + parol bilan o'z hisobingizga kirasiz.</div>` : ''}
+    </div></div>`;
+}
+ 
+async function submitAuth(){
+  const loginRaw = document.getElementById('a_login').value;
+  const pass = document.getElementById('a_pass').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  const login = sanitizeLogin(loginRaw);
+ 
+  if(authMode==='signup'){
+    const name = document.getElementById('a_name').value.trim();
+    if(!name || !login || pass.length<6){ errEl.textContent="Iltimos, barcha maydonlarni to'g'ri to'ldiring (parol kamida 6 belgi, login faqat harf/raqam)."; shakeCard(); return; }
+    const {data, error} = await supabaseClient.auth.signUp({email: emailFor(login), password: pass});
+    if(error){
+      const msg = (error.message||'').toLowerCase();
+      errEl.textContent = (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) ? "Bu login band, boshqasini tanlang." : error.message;
+      shakeCard(); return;
+    }
+    if(!data.session){ errEl.textContent = "Ro'yxatdan o'tish tugallanmadi. Administratorga murojaat qiling."; return; }
+    session = data.session;
+    const {error: insErr} = await supabaseClient.from('restaurants').insert({id: session.user.id, slug: login, name});
+    if(insErr){ errEl.textContent = insErr.message; return; }
+    await loadRestaurant();
+    render();
+  } else {
+    if(!login || !pass){ errEl.textContent = "Login va parolni kiriting."; shakeCard(); return; }
+    const {data, error} = await supabaseClient.auth.signInWithPassword({email: emailFor(login), password: pass});
+    if(error){ errEl.textContent = "Login yoki parol noto'g'ri."; shakeCard(); return; }
+    session = data.session;
+    await loadRestaurant();
+    render();
+  }
+}
+function shakeCard(){ const c=document.querySelector('.login-card'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+ 
+function renderCreateProfile(){
+  document.getElementById('app').innerHTML = `
+    <div class="login-wrap"><div class="login-card">
+      <div class="login-mark grad-bg">🔥</div>
+      <div class="login-brand">Restoran profilini yarating</div>
+      <div class="form-group"><label>Restoran nomi</label><input id="p_name" type="text" placeholder="Masalan: Fast Food Do'koni"></div>
+      <button class="primary-btn" onclick="createProfile()">Davom etish</button>
+      <div id="authError" class="login-error"></div>
+    </div></div>`;
+}
+async function createProfile(){
+  const name = document.getElementById('p_name').value.trim();
+  if(!name) return;
+  const login = (session.user.email||'').split('@')[0];
+  await supabaseClient.from('restaurants').insert({id: session.user.id, slug: login, name});
+  await loadRestaurant();
+  render();
+}
+ 
+async function logout(){
+  if(ordersChannel){ supabaseClient.removeChannel(ordersChannel); ordersChannel=null; }
+  await supabaseClient.auth.signOut();
+  session=null; restaurant=null; orders=[]; menuItems=[];
+  render();
+}
+ 
+/* ============================================================
+   YANGI BUYURTMA OGOHLANTIRISHI — ovoz (takrorlanadi) + brauzer
+   bildirishnomasi + miltillovchi sarlavha + katta banner.
+   Admin ekranga tikilib o'tirmasa ham albatta payqaydi.
+   ============================================================ */
+const ORIGINAL_TITLE = document.title;
+let alertActive = false;
+let titleFlashTimer = null;
+let repeatSoundTimer = null;
+ 
+function initOrderAlerts(){
+  if(!restaurant || ordersChannel) return;
+  ordersChannel = supabaseClient
+    .channel('orders-alert-'+restaurant.id)
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders', filter:`restaurant_id=eq.${restaurant.id}`}, (payload) => {
+      startOrderAlert(payload.new);
+      hasNewOrderDot = true;
+      const dot = document.getElementById('bellDot');
+      if(dot) dot.classList.add('show');
+      const bell = document.getElementById('bellBtn');
+      if(bell){ bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
+      if(currentTab==='orders') renderOrdersTab(payload.new.id);
+    })
+    .subscribe();
+}
+ 
+function startOrderAlert(order){
+  alertActive = true;
+  showAlertBanner(order);
+  playAlertSound();
+  showBrowserNotification(order);
+ 
+  let count = 0;
+  clearInterval(repeatSoundTimer);
+  repeatSoundTimer = setInterval(() => {
+    count++;
+    if(!alertActive || count >= 6){ clearInterval(repeatSoundTimer); return; }
+    playAlertSound();
+  }, 4000);
+ 
+  clearInterval(titleFlashTimer);
+  let on = false;
+  titleFlashTimer = setInterval(() => {
+    document.title = on ? ORIGINAL_TITLE : '🔔 Yangi buyurtma!';
+    on = !on;
+  }, 1000);
+}
+function stopOrderAlert(){
+  alertActive = false;
+  clearInterval(repeatSoundTimer);
+  clearInterval(titleFlashTimer);
+  document.title = ORIGINAL_TITLE;
+  hideAlertBanner();
+}
+function showAlertBanner(order){
+  let banner = document.getElementById('orderAlertBanner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'orderAlertBanner';
+    banner.className = 'order-alert-banner';
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `
+    <div class="oab-inner">
+      <span class="oab-icon">🔔</span>
+      <div class="oab-text"><b>Yangi buyurtma!</b><br>№ ${order.code} · ${fmt(order.total)}</div>
+      <button class="oab-btn" onclick="acknowledgeAlert()">Ko'rish</button>
+    </div>`;
+  requestAnimationFrame(() => banner.classList.add('show'));
+}
+function hideAlertBanner(){
+  const banner = document.getElementById('orderAlertBanner');
+  if(banner) banner.classList.remove('show');
+}
+function acknowledgeAlert(){
+  stopOrderAlert();
+  const ordersBtn = document.querySelector('.maintabs button[data-t="orders"]');
+  if(ordersBtn) switchTab('orders', ordersBtn);
+}
+function playAlertSound(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const beep = (freq, start, dur) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type='sine'; o.frequency.value=freq;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime+start);
+      g.gain.exponentialRampToValueAtTime(0.32, ctx.currentTime+start+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+start+dur);
+      o.start(ctx.currentTime+start); o.stop(ctx.currentTime+start+dur+0.02);
+    };
+    beep(880, 0, 0.4); beep(1180, 0.18, 0.35);
+  }catch(e){}
+}
+function showBrowserNotification(order){
+  if('Notification' in window && Notification.permission==='granted'){
+    try{ new Notification('🔥 Yangi buyurtma — № '+order.code, {body: fmt(order.total)+' · '+(TYPE_LABELS[order.type]||'')}); }catch(e){}
+  }
+}
+function clearBellDot(){
+  hasNewOrderDot = false;
+  const dot = document.getElementById('bellDot');
+  if(dot) dot.classList.remove('show');
+}
+ 
+async function renderDashboard(){
+  const menuUrl = `${location.origin}${location.pathname.replace('admin.html','index.html')}?r=${restaurant.slug}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(menuUrl)}`;
+  document.getElementById('app').innerHTML = `
+    <header>
+      <div class="brand"><div class="mark grad-bg">🔥</div><div class="word">${restaurant.name}</div></div>
+      <div class="header-right">
+        <button class="bell-btn" id="bellBtn" onclick="clearBellDot()">🔔<span class="bell-dot" id="bellDot"></span></button>
+        <button class="logout-btn" onclick="logout()">Chiqish</button>
+      </div>
+    </header>
+    <main>
+      <div class="link-card">
+        <div class="lbl">Mijozlar uchun havola</div>
+        <div class="link-card-body">
+          <div class="link-qr"><img src="${qrUrl}" alt="QR"></div>
+          <div class="link-info">
+            <div class="link-url" id="linkUrlText">${menuUrl}</div>
+            <button class="link-copy" id="copyBtn" onclick="copyLink('${menuUrl}')">Nusxalash</button>
+          </div>
+        </div>
+      </div>
+      <div class="name-card">
+        <div class="lbl">Restoran nomi</div>
+        <div class="name-row">
+          <input id="nameEdit" type="text" value="${restaurant.name}">
+          <button onclick="saveRestaurantName()">Saqlash</button>
+        </div>
+        <div class="lbl" style="margin-top:14px;">Qisqacha tavsif (katalogda ko'rinadi)</div>
+        <div class="name-row">
+          <input id="taglineEdit" type="text" placeholder="Masalan: Fastfood, shaurma va burgerlar" value="${restaurant.tagline||''}">
+          <button onclick="saveRestaurantName()">Saqlash</button>
+        </div>
+      </div>
+      <div class="maintabs" id="mainTabs">
+        <div class="indicator" id="mtIndicator"></div>
+        <button class="${currentTab==='orders'?'active':''}" data-t="orders" onclick="switchTab('orders', this)">Buyurtmalar</button>
+        <button class="${currentTab==='courier'?'active':''}" data-t="courier" onclick="switchTab('courier', this)">Kuryer</button>
+        <button class="${currentTab==='menu'?'active':''}" data-t="menu" onclick="switchTab('menu', this)">Menyu</button>
+      </div>
+      <div id="tabContent"></div>
+    </main>`;
+  requestAnimationFrame(() => moveMTIndicator(document.querySelector('.maintabs button.active')));
+  if(currentTab==='orders') await renderOrdersTab();
+  else if(currentTab==='courier') await renderCourierTab();
+  else await renderMenuTab();
+}
+ 
+function moveMTIndicator(el){
+  const ind = document.getElementById('mtIndicator');
+  if(!ind || !el) return;
+  ind.style.left = el.offsetLeft + 'px';
+  ind.style.width = el.offsetWidth + 'px';
+}
+function switchTab(t, el){
+  currentTab = t;
+  document.querySelectorAll('.maintabs button').forEach(b => b.classList.toggle('active', b===el));
+  moveMTIndicator(el);
+  if(alertActive) stopOrderAlert();
+  if(t==='orders'){ clearBellDot(); renderOrdersTab(); }
+  else if(t==='courier') renderCourierTab();
+  else renderMenuTab();
+}
+ 
+async function saveRestaurantName(){
+  const newName = document.getElementById('nameEdit').value.trim();
+  const newTagline = document.getElementById('taglineEdit').value.trim();
+  if(!newName) return;
+  await supabaseClient.from('restaurants').update({name:newName, tagline:newTagline||null}).eq('id', restaurant.id);
+  restaurant.name = newName;
+  restaurant.tagline = newTagline;
+  document.querySelector('.brand .word').textContent = newName;
+}
+ 
+function copyLink(url){
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    const old = btn.textContent;
+    btn.textContent='Nusxalandi!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent=old; btn.classList.remove('copied'); }, 1500);
+  });
+}
+ 
+/* ---------- ORDERS TAB ---------- */
+async function renderOrdersTab(highlightId){
+  clearBellDot();
+  const {data} = await supabaseClient.from('orders').select('*').eq('restaurant_id', restaurant.id).order('created_at', {ascending:false});
+  orders = data || [];
+  const el = document.getElementById('tabContent');
+ 
+  const today = new Date().toDateString();
+  const todayOrders = orders.filter(o=>new Date(o.created_at).toDateString()===today);
+  const yangi = orders.filter(o=>o.status==='yangi').length;
+  const todaySum = todayOrders.filter(o=>o.status!=='bekor').reduce((s,o)=>s+o.total,0);
+ 
+  const filtered = orderFilter==='barchasi' ? orders : orders.filter(o=>o.status===orderFilter);
+  const keys=['barchasi','yangi','tasdiqlangan','tayyor','bekor'];
+  const labels={barchasi:'Barchasi',yangi:'Yangi',tasdiqlangan:'Tasdiqlangan',tayyor:'Tayyor',bekor:'Bekor qilingan'};
+ 
+  el.innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="num grad-text">${yangi}</div><div class="lbl">Yangi</div></div>
+      <div class="stat"><div class="num grad-text">${orders.length}</div><div class="lbl">Jami</div></div>
+      <div class="stat"><div class="num grad-text" style="font-size:15px;">${fmt(todaySum)}</div><div class="lbl">Bugungi tushum</div></div>
+    </div>
+    ${renderWeeklyChart()}
+    <div class="filters">${keys.map(k=>`<button class="${k===orderFilter?'active':''}" onclick="orderFilter='${k}';renderOrdersTab()">${labels[k]}</button>`).join('')}</div>
+    <div id="orderList"></div>`;
+ 
+  const listEl = document.getElementById('orderList');
+  if(filtered.length===0){
+    listEl.innerHTML = `<div class="empty"><div class="mk">📭</div><h3>Hozircha buyurtmalar yo'q</h3></div>`;
+    return;
+  }
+  listEl.innerHTML = filtered.map((o,i) => {
+    let extraBlock='';
+    if(o.type==='delivery') extraBlock = `<div class="oc-extra"><b>Do'kon:</b> ${o.customer.shop||'—'} &nbsp;·&nbsp; <b>Sektor:</b> ${o.customer.sector||'—'}${o.customer.note?`<br><b>Izoh:</b> ${o.customer.note}`:''}</div>`;
+    else if(o.type==='dinein') extraBlock = `<div class="oc-extra"><b>Odamlar soni:</b> ${o.customer.people||'—'} · <b>Vaqt:</b> ${o.customer.time||'—'}</div>`;
+    else extraBlock = `<div class="oc-extra"><b>Olib ketish vaqti:</b> ${o.customer.time||'—'}</div>`;
+    if(o.status==='bekor' && o.cancel_reason){ extraBlock += `<div class="oc-extra cancel"><b>Bekor qilish sababi:</b> ${o.cancel_reason}</div>`; }
+ 
+    let actions='';
+    if(o.status==='yangi') actions = `<button class="primary" onclick="setStatus('${o.id}','tasdiqlangan')">Qabul qilish</button><button class="danger" onclick="cancelOrder('${o.id}')">Bekor qilish</button>`;
+    else if(o.status==='tasdiqlangan') actions = `<button class="primary" onclick="setStatus('${o.id}','tayyor')">Tayyor deb belgilash</button><button class="danger" onclick="cancelOrder('${o.id}')">Bekor qilish</button>`;
+    else if(o.status==='tayyor') actions = `<button disabled style="opacity:.5;">Yakunlangan</button>`;
+    else actions = `<button onclick="setStatus('${o.id}','yangi')">Qayta tiklash</button>`;
+ 
+    return `<div class="order-card ${o.id===highlightId?'flash':''}" style="animation-delay:${i*0.03}s">
+      <div class="oc-top"><div><div class="oc-code">№ ${o.code}</div><div class="oc-time">${timeAgo(o.created_at)}</div></div><span class="badge ${o.status}">${STATUS_LABELS[o.status]}</span></div>
+      <div class="oc-meta"><span>${TYPE_LABELS[o.type]}</span><span><b>${o.customer.name||'—'}</b> · ${o.customer.phone||'—'}</span></div>
+      <div class="oc-items">${o.items.map(it=>`<div><span>${it.qty} × ${it.name}</span><b>${fmt(it.price*it.qty)}</b></div>`).join('')}</div>
+      <div class="oc-total"><span>Jami</span><b class="grad-text">${fmt(o.total)}</b></div>
+      ${extraBlock}
+      <div class="oc-actions">${actions}</div>
+    </div>`;
+  }).join('');
+}
+ 
+function cancelOrder(id){
+  const reason = prompt("Bekor qilish sababini kiriting (ixtiyoriy):", "");
+  if(reason === null) return;
+  setStatus(id, 'bekor', reason.trim() || null);
+}
+async function setStatus(id, status, cancelReason){
+  const update = {status};
+  if(status==='bekor') update.cancel_reason = cancelReason || null;
+  await supabaseClient.from('orders').update(update).eq('id', id);
+  if(currentTab==='orders') renderOrdersTab();
+  else if(currentTab==='courier') renderCourierTab();
+}
+ 
+/* ---------- WEEKLY CHART ---------- */
+function renderWeeklyChart(){
+  const dayNames = ['Yak','Dush','Sesh','Chor','Pay','Jum','Shan'];
+  const days = [...Array(7)].map((_,i) => { const d = new Date(); d.setDate(d.getDate() - (6-i)); return d; });
+  const dayData = days.map(d => {
+    const key = d.toDateString();
+    const dOrders = orders.filter(o => new Date(o.created_at).toDateString()===key && o.status!=='bekor');
+    return {label: dayNames[d.getDay()], sum: dOrders.reduce((s,o)=>s+o.total,0), isToday: key===new Date().toDateString()};
+  });
+  const max = Math.max(...dayData.map(d=>d.sum), 1);
+  return `<div class="chart-card">
+    <div class="chart-head">Oxirgi 7 kunlik tushum</div>
+    <div class="chart-bars">
+      ${dayData.map((d,i) => `<div class="chart-col">
+        <div class="chart-bar-wrap"><div class="chart-bar" data-today="${d.isToday?1:0}" style="height:${Math.max(4,(d.sum/max*100))}%; animation-delay:${i*0.05}s;"></div></div>
+        <div class="chart-lbl">${d.label}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+ 
+/* ---------- COURIER TAB ---------- */
+async function renderCourierTab(){
+  const {data} = await supabaseClient.from('orders').select('*').eq('restaurant_id', restaurant.id).eq('type','delivery').in('status', ['yangi','tasdiqlangan']).order('created_at', {ascending:true});
+  const list = data || [];
+  const el = document.getElementById('tabContent');
+  if(list.length===0){ el.innerHTML = `<div class="empty"><div class="mk">🛵</div><h3>Hozircha yetkazish kerak bo'lgan buyurtma yo'q</h3></div>`; return; }
+  el.innerHTML = list.map(o => `
+    <div class="courier-card">
+      <div class="cc-top"><span class="cc-code">№ ${o.code}</span><span class="badge ${o.status}">${STATUS_LABELS[o.status]}</span></div>
+      <div class="cc-dest">🏪 Do'kon ${o.customer.shop||'—'} · Sektor ${o.customer.sector||'—'}</div>
+      <div class="cc-items">${o.items.map(it=>`${it.qty}× ${it.name}`).join(', ')}</div>
+      ${o.customer.note ? `<div class="cc-note">📝 ${o.customer.note}</div>` : ''}
+      <div class="cc-phone">☎ ${o.customer.name||'—'} · ${o.customer.phone||'—'}</div>
+      ${o.status==='yangi'
+        ? `<button class="primary-btn" onclick="setStatus('${o.id}','tasdiqlangan')" style="margin-top:12px;">Qabul qilish</button>`
+        : `<button class="primary-btn" onclick="setStatus('${o.id}','tayyor')" style="margin-top:12px;">Yetkazildi</button>`}
+    </div>`).join('');
+}
+ 
+/* ---------- MENU TAB ---------- */
+async function renderMenuTab(){
+  const {data} = await supabaseClient.from('menu_items').select('*').eq('restaurant_id', restaurant.id).order('category');
+  menuItems = data || [];
+  const el = document.getElementById('tabContent');
+  el.innerHTML = `
+    <div class="menu-add">
+      <h3>Yangi taom qo'shish</h3>
+      <div class="form-group"><label>Kategoriya</label><input id="m_cat" type="text" placeholder="Masalan: Shaurma & Lavash"></div>
+      <div class="form-group"><label>Nomi</label><input id="m_name" type="text" placeholder="Taom nomi"></div>
+      <div class="form-group"><label>Tavsif</label><input id="m_desc" type="text" placeholder="Qisqacha tavsif (ixtiyoriy)"></div>
+      <div class="form-group"><label>Narxi (so'm)</label><input id="m_price" type="number" placeholder="24000"></div>
+      <div class="form-group"><label>Rasm (ixtiyoriy)</label><input id="m_image" type="file" accept="image/*"></div>
+      <button class="primary-btn" onclick="addMenuItem()">Qo'shish</button>
+    </div>
+    <div id="menuList"></div>`;
+ 
+  const listEl = document.getElementById('menuList');
+  if(menuItems.length===0){ listEl.innerHTML = `<div class="empty"><div class="mk">🍽️</div><h3>Menyuda hali taom yo'q</h3></div>`; return; }
+  listEl.innerHTML = menuItems.map(m => {
+    if(editingItemId === m.id){
+      return `<div class="menu-item-row menu-item-edit">
+        <div class="edit-grid">
+          <div class="form-group"><label>Kategoriya</label><input id="e_cat_${m.id}" type="text" value="${(m.category||'').replace(/"/g,'&quot;')}"></div>
+          <div class="form-group"><label>Nomi</label><input id="e_name_${m.id}" type="text" value="${(m.name||'').replace(/"/g,'&quot;')}"></div>
+          <div class="form-group"><label>Tavsif</label><input id="e_desc_${m.id}" type="text" value="${(m.description||'').replace(/"/g,'&quot;')}"></div>
+          <div class="form-group"><label>Narxi (so'm)</label><input id="e_price_${m.id}" type="number" value="${m.price}"></div>
+        </div>
+        <div class="edit-actions">
+          <button class="primary-btn" onclick="saveMenuItem('${m.id}')">Saqlash</button>
+          <button class="ghost-btn2" onclick="editingItemId=null;renderMenuTab()">Bekor qilish</button>
+        </div>
+      </div>`;
+    }
+    return `
+    <div class="menu-item-row ${m.available===false?'unavailable':''}">
+      <div class="mi-photo" onclick="triggerImageEdit('${m.id}')" title="Rasmni almashtirish">${m.image?`<img src="${m.image}">`:'📷'}</div>
+      <div style="flex:1;min-width:0;"><div class="mi-name">${m.name}</div><div class="mi-cat">${m.category}</div></div>
+      <div class="mi-price grad-text">${fmt(m.price)}</div>
+      <button class="mi-avail ${m.available===false?'off':'on'}" onclick="toggleAvailable('${m.id}', ${m.available!==false})">${m.available===false?'⛔ Tugagan':'✅ Mavjud'}</button>
+      <button class="mi-edit" onclick="editingItemId='${m.id}';renderMenuTab()">✏️</button>
+      <button class="mi-del" onclick="deleteMenuItem('${m.id}')">O'chirish</button>
+    </div>`;
+  }).join('');
+}
+ 
+async function saveMenuItem(id){
+  const category = document.getElementById(`e_cat_${id}`).value.trim();
+  const name = document.getElementById(`e_name_${id}`).value.trim();
+  const description = document.getElementById(`e_desc_${id}`).value.trim();
+  const price = Number(document.getElementById(`e_price_${id}`).value);
+  if(!category || !name || !price){ alert("Iltimos, kategoriya, nom va narxni to'ldiring."); return; }
+  await supabaseClient.from('menu_items').update({category, name, description, price}).eq('id', id);
+  editingItemId = null;
+  renderMenuTab();
+}
+ 
+async function addMenuItem(){
+  const category = document.getElementById('m_cat').value.trim();
+  const name = document.getElementById('m_name').value.trim();
+  const description = document.getElementById('m_desc').value.trim();
+  const price = Number(document.getElementById('m_price').value);
+  const fileInput = document.getElementById('m_image');
+  const file = fileInput && fileInput.files[0];
+  if(!category || !name || !price){ alert("Iltimos, kategoriya, nom va narxni to'ldiring."); return; }
+ 
+  const btn = document.querySelector('.menu-add .primary-btn');
+  if(btn){ btn.disabled = true; btn.textContent = "Qo'shilmoqda..."; }
+ 
+  let image = null;
+  if(file){ image = await uploadMenuImage(file); }
+ 
+  await supabaseClient.from('menu_items').insert({restaurant_id: restaurant.id, category, name, description, price, image, available:true});
+  renderMenuTab();
+}
+ 
+async function uploadMenuImage(file){
+  try{
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g,'_');
+    const path = `${restaurant.id}/${Date.now()}-${safeName}`;
+    const {error: upErr} = await supabaseClient.storage.from('menu-images').upload(path, file);
+    if(upErr){ alert("Rasm yuklashda xatolik: "+upErr.message+"\n\nEslatma: Supabase'da 'menu-images' nomli ochiq (public) Storage bucket yaratilganiga ishonch hosil qiling."); return null; }
+    const {data:pub} = supabaseClient.storage.from('menu-images').getPublicUrl(path);
+    return pub.publicUrl;
+  }catch(e){
+    alert("Rasm yuklashda xatolik yuz berdi.");
+    return null;
+  }
+}
+function triggerImageEdit(id){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='image/*';
+  input.onchange = async () => {
+    const file = input.files[0];
+    if(!file) return;
+    const image = await uploadMenuImage(file);
+    if(!image) return;
+    await supabaseClient.from('menu_items').update({image}).eq('id', id);
+    renderMenuTab();
+  };
+  input.click();
+}
+async function toggleAvailable(id, current){
+  await supabaseClient.from('menu_items').update({available: !current}).eq('id', id);
+  renderMenuTab();
+}
+async function deleteMenuItem(id){
+  await supabaseClient.from('menu_items').delete().eq('id', id);
+  renderMenuTab();
+}
+ 
+boot();
+</script>
+</body>
+</html>
+ 
+
+
+
+
